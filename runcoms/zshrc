@@ -1,13 +1,38 @@
-#
-# Executes commands at the start of an interactive session.
-#
-# Authors:
-#   Sorin Ionescu <sorin.ionescu@gmail.com>
-#
-
 # Source Prezto.
 if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 fi
 
-# Customize to your needs...
+if [ "$TERM_PROGRAM" = 'vscode' ]; then
+  ZSH_THEME="imajes"
+  plugins=(history-substring-search kubectl zsh_reload)
+else
+  ZSH_THEME="robbyrussell"
+  plugins=(git dotenv docker history-substring-search kube-ps1 kubectl terraform zsh_reload)
+fi
+
+alias ns='kubens'
+alias ctx='kubectx'
+alias kpodspending="kubectl get pods -o wide --all-namespaces | grep -Ev '([0-9]+)/\1'"
+
+function kshell {
+  COLUMNS=`tput cols`
+  LINES=`tput lines`
+  TERM=xterm
+  k exec -i -t $1 env COLUMNS=$COLUMNS LINES=$LINES TERM=$TERM bash
+}
+
+source <(kubectl completion zsh)
+
+alias kyoungest='kubectl get pods --sort-by=.metadata.creationTimestamp -o=custom-columns=NAME:.metadata.name --no-headers | tail -1'
+alias koldest='kubectl get pods --sort-by=.metadata.creationTimestamp -o=custom-columns=NAME:.metadata.name --no-headers | header -1'
+
+[[ -x /usr/local/bin/brew ]] && eval $(/usr/local/bin/brew shellenv)
+
+complete -F __start_kubectl k
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/mcorrea/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/mcorrea/Downloads/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/Users/mcorrea/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/mcorrea/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
